@@ -202,12 +202,14 @@ def parse_location_arguments(raw_locations: List[str], cities_arg: Optional[str]
         return queries if queries else list(default_cities or DEFAULT_CADENCE_CITIES)
 
     try:
-        from .geo_resolver import PRESEEDED_LOCATIONS, ALIAS_MAP, normalize_query_key
+        from .geo_resolver import PRESEEDED_LOCATIONS, ALIAS_MAP, normalize_query_key, GeoResolver
     except (ImportError, ValueError):
         try:
-            from cli_weather.geo_resolver import PRESEEDED_LOCATIONS, ALIAS_MAP, normalize_query_key
+            from cli_weather.geo_resolver import PRESEEDED_LOCATIONS, ALIAS_MAP, normalize_query_key, GeoResolver
         except ImportError:
-            from geo_resolver import PRESEEDED_LOCATIONS, ALIAS_MAP, normalize_query_key
+            from geo_resolver import PRESEEDED_LOCATIONS, ALIAS_MAP, normalize_query_key, GeoResolver
+
+    _resolver = GeoResolver()
 
     def is_known(name: str) -> bool:
         k = normalize_query_key(name)
@@ -217,6 +219,7 @@ def parse_location_arguments(raw_locations: List[str], cities_arg: Optional[str]
             or k.startswith("~")
             or k.startswith("@")
             or k == "moon"
+            or _resolver._find_fuzzy_preseeded(k) is not None
         )
 
     joined_all = " ".join(expanded_tokens)
