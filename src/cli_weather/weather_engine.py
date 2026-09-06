@@ -116,7 +116,7 @@ class WeatherEngine:
 
         # 3. Final validation & caching
         if weather and weather.is_success:
-            if not no_cache and not location.is_special:
+            if not location.is_special:
                 self.cache_manager.set(weather, lang=effective_lang)
             return weather
 
