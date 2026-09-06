@@ -3,6 +3,8 @@
 base_provider.py - Abstract base class for weather providers.
 """
 
+import sys
+from pathlib import Path
 from abc import ABC, abstractmethod
 from typing import Optional
 
@@ -12,7 +14,6 @@ except (ImportError, ValueError):
     try:
         from cli_weather.models import CityWeather, ResolvedLocation
     except ImportError:
-        import sys
         sys.path.insert(0, str(Path(__file__).parent.parent))
         from models import CityWeather, ResolvedLocation
 

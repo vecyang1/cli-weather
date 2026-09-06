@@ -204,10 +204,41 @@ PRESEEDED_LOCATIONS: Dict[str, Dict[str, Any]] = {
         "lon": 2.3522,
         "timezone": "Europe/Paris",
     },
+    "los angeles": {
+        "canonical": "Los Angeles",
+        "zh": "洛杉矶",
+        "en": "Los Angeles",
+        "country": "United States",
+        "country_code": "US",
+        "lat": 34.0522,
+        "lon": -118.2437,
+        "timezone": "America/Los_Angeles",
+    },
+    "san francisco": {
+        "canonical": "San Francisco",
+        "zh": "旧金山",
+        "en": "San Francisco",
+        "country": "United States",
+        "country_code": "US",
+        "lat": 37.7749,
+        "lon": -122.4194,
+        "timezone": "America/Los_Angeles",
+    },
 }
 
 # Aliases and common misspellings pointing to preseeded canonical keys
 ALIAS_MAP: Dict[str, str] = {
+    # US Hubs
+    "la": "los angeles",
+    "lax": "los angeles",
+    "los angeles": "los angeles",
+    "洛杉矶": "los angeles",
+    "sf": "san francisco",
+    "sfo": "san francisco",
+    "san francisco": "san francisco",
+    "旧金山": "san francisco",
+    "三藩市": "san francisco",
+
     # Typos & Variants for Chiang Mai
     "chiangmai": "chiang mai",
     "chiangamai": "chiang mai",
@@ -306,11 +337,59 @@ def normalize_query_key(query: str) -> str:
     s = re.sub(r"\s+", " ", s).strip()
     return s
 
+
+def damerau_levenshtein_distance(s1: str, s2: str) -> int:
+    """Compute Damerau-Levenshtein distance (insertions, deletions, substitutions, transpositions)."""
+    len1, len2 = len(s1), len(s2)
+    d = [[0] * (len2 + 1) for _ in range(len1 + 1)]
+    for i in range(len1 + 1):
+        d[i][0] = i
+    for j in range(len2 + 1):
+        d[0][j] = j
+    for i in range(1, len1 + 1):
+        for j in range(1, len2 + 1):
+            cost = 0 if s1[i - 1] == s2[j - 1] else 1
+            d[i][j] = min(
+                d[i - 1][j] + 1,
+                d[i][j - 1] + 1,
+                d[i - 1][j - 1] + cost,
+            )
+            if i > 1 and j > 1 and s1[i - 1] == s2[j - 2] and s1[i - 2] == s2[j - 1]:
+                d[i][j] = min(d[i][j], d[i - 2][j - 2] + cost)
+    return d[len1][len2]
+
+
 class GeoResolver:
     """Resolves arbitrary user location strings to canonical coordinates."""
 
     def __init__(self, timeout_sec: float = 3.0):
         self.timeout_sec = timeout_sec
+
+    def _find_fuzzy_preseeded(self, norm_key: str) -> Optional[str]:
+        """Find closest preseeded canonical location via Damerau-Levenshtein distance."""
+        if len(norm_key) < 4:
+            return None
+
+        best_canonical: Optional[str] = None
+        best_dist = 999
+
+        for key in PRESEEDED_LOCATIONS:
+            max_allowed = 1 if len(key) <= 5 else 2
+            d = damerau_levenshtein_distance(norm_key, key)
+            if d <= max_allowed and d < best_dist:
+                best_dist = d
+                best_canonical = key
+
+        for alias, canon in ALIAS_MAP.items():
+            if len(alias) < 4:
+                continue
+            max_allowed = 1 if len(alias) <= 5 else 2
+            d = damerau_levenshtein_distance(norm_key, alias)
+            if d <= max_allowed and d < best_dist:
+                best_dist = d
+                best_canonical = canon
+
+        return best_canonical
 
     def resolve(self, query: str) -> ResolvedLocation:
         """
@@ -374,6 +453,22 @@ class GeoResolver:
         canonical_key = ALIAS_MAP.get(norm_key, norm_key)
         if canonical_key in PRESEEDED_LOCATIONS:
             info = PRESEEDED_LOCATIONS[canonical_key]
+            return ResolvedLocation(
+                query=raw_query,
+                canonical_name=info["canonical"],
+                display_name_zh=info["zh"],
+                display_name_en=info["en"],
+                country=info["country"],
+                country_code=info["country_code"],
+                lat=info["lat"],
+                lon=info["lon"],
+                timezone=info.get("timezone", "auto"),
+            )
+
+        # 1b. Fuzzy typo matching via Damerau-Levenshtein against preseeded locations
+        fuzzy_key = self._find_fuzzy_preseeded(norm_key)
+        if fuzzy_key and fuzzy_key in PRESEEDED_LOCATIONS:
+            info = PRESEEDED_LOCATIONS[fuzzy_key]
             return ResolvedLocation(
                 query=raw_query,
                 canonical_name=info["canonical"],

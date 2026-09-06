@@ -41,11 +41,10 @@
 
 ## Current Risks
 
-- None. All 56 unit and live tests pass.
+- `Minor Robustness Risk`: Public upstream APIs (Open-Meteo, Met.no, wttr.in) may throttle bursts exceeding 100 queries/minute. Mitigated by atomic 20-minute local caching and 4-tier provider cascade.
+- `Minor Robustness Risk`: Python <3.11 without `tomllib` uses regex fallback parser which supports standard keys and arrays but not multi-level nested tables.
 
 ## Next Actions
 
-1. Commit and push to GitHub repository `vecyang1/cli-weather`.
-2. Point `~/.gemini/antigravity/skills/cli-weather` to use this standalone package directly.
-3. Update 2nd Brain registries (`project-index.md`, `project-capabilities.md`, `project-links.md`).
-4. Run `run_vault_checks.py` in 2nd Brain to verify governance gates.
+- All deployment and integration milestones complete.
+- Future enhancement: Optional PyPI publishing (`twine upload dist/*`) if pip distribution is desired.

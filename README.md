@@ -2,7 +2,7 @@
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python Version](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/)
-[![Tests](https://img.shields.io/badge/tests-56%20passed-success.svg)]()
+[![Tests](https://img.shields.io/badge/tests-59%20passed-success.svg)]()
 [![Zero Dependencies](https://img.shields.io/badge/dependencies-zero%20(stdlib)-brightgreen.svg)]()
 
 > **Production-grade, ultra-compact terminal weather interface (<150 tokens) and Python engine.**  
