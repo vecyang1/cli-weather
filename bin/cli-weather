@@ -1,0 +1,13 @@
+#!/usr/bin/env python3
+import sys
+from pathlib import Path
+
+# Add src to sys.path so the standalone package is always resolvable
+REPO_SRC = Path(__file__).resolve().parent.parent / "src"
+if REPO_SRC.is_dir() and str(REPO_SRC) not in sys.path:
+    sys.path.insert(0, str(REPO_SRC))
+
+from cli_weather.cli import main
+
+if __name__ == "__main__":
+    main()
