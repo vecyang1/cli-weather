@@ -23,6 +23,15 @@ class TestCLI(unittest.TestCase):
         res = parse_location_arguments(["Foshan", "Chiang", "Mai", "Tokyo"])
         self.assertEqual(res, ["Foshan", "Chiang Mai", "Tokyo"])
 
+        res2 = parse_location_arguments(["Seattle", "New", "York"])
+        self.assertEqual(res2, ["Seattle", "New York"])
+
+        res3 = parse_location_arguments(["Los", "Angeles", "New", "York"])
+        self.assertEqual(res3, ["Los Angeles", "New York"])
+
+        res4 = parse_location_arguments(["Seattle", "Chiang", "Mai"])
+        self.assertEqual(res4, ["Seattle", "Chiang Mai"])
+
     def test_parse_location_arguments_cities_flag(self):
         res = parse_location_arguments([], cities_arg="Foshan, Chiang Mai, Da Nang, Tokyo")
         self.assertEqual(res, ["Foshan", "Chiang Mai", "Da Nang", "Tokyo"])

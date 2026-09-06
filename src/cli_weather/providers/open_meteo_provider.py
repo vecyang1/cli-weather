@@ -74,89 +74,97 @@ class OpenMeteoProvider(BaseWeatherProvider):
             f"&timezone={tz}&forecast_days=3"
         )
 
-        req = urllib.request.Request(url, headers={"User-Agent": "cli-weather/2.0"})
-        with urllib.request.urlopen(req, timeout=self.timeout_sec) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "cli-weather/2.0"})
+            with urllib.request.urlopen(req, timeout=self.timeout_sec) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
 
-        current = data.get("current", {})
-        daily = data.get("daily", {})
+            if not isinstance(data, dict) or data.get("error") or not data.get("current"):
+                return None
 
-        wmo_code = current.get("weather_code", 0)
-        is_day = current.get("is_day", 1)
-        cond_dict = get_wmo_condition(wmo_code, lang=lang, is_day=is_day)
-        condition = WeatherCondition(
-            code=wmo_code,
-            text=cond_dict["text"],
-            icon=cond_dict["icon"],
-        )
+            current = data.get("current", {})
+            if "temperature_2m" not in current:
+                return None
+            daily = data.get("daily", {})
 
-        temp_c = float(current.get("temperature_2m", 0.0))
-        feels_like_c = float(current.get("apparent_temperature", temp_c))
-        humidity_pct = int(current.get("relative_humidity_2m", 0))
-        wind_speed_kmh = float(current.get("wind_speed_10m", 0.0))
-        wind_deg = current.get("wind_direction_10m")
-        wind_dir = deg_to_compass(wind_deg, lang=lang)
-        precip_mm = float(current.get("precipitation", 0.0))
+            wmo_code = current.get("weather_code", 0)
+            is_day = current.get("is_day", 1)
+            cond_dict = get_wmo_condition(wmo_code, lang=lang, is_day=is_day)
+            condition = WeatherCondition(
+                code=wmo_code,
+                text=cond_dict["text"],
+                icon=cond_dict["icon"],
+            )
 
-        # Parse UV index (prefer current uv_index, fallback to daily max)
-        uv_val = current.get("uv_index")
-        if uv_val is None and daily and "uv_index_max" in daily:
-            uv_max_arr = daily.get("uv_index_max", [])
-            if uv_max_arr and uv_max_arr[0] is not None:
-                uv_val = uv_max_arr[0]
-        uv_index = float(uv_val) if uv_val is not None else None
+            temp_c = float(current.get("temperature_2m", 0.0))
+            feels_like_c = float(current.get("apparent_temperature", temp_c))
+            humidity_pct = int(current.get("relative_humidity_2m", 0))
+            wind_speed_kmh = float(current.get("wind_speed_10m", 0.0))
+            wind_deg = current.get("wind_direction_10m")
+            wind_dir = deg_to_compass(wind_deg, lang=lang)
+            precip_mm = float(current.get("precipitation", 0.0))
 
-        # Parse daily stats for today
-        temp_min_c = None
-        temp_max_c = None
-        precip_prob = None
-        daily_list: List[DailyForecast] = []
+            # Parse UV index (prefer current uv_index, fallback to daily max)
+            uv_val = current.get("uv_index")
+            if uv_val is None and daily and "uv_index_max" in daily:
+                uv_max_arr = daily.get("uv_index_max", [])
+                if uv_max_arr and uv_max_arr[0] is not None:
+                    uv_val = uv_max_arr[0]
+            uv_index = float(uv_val) if uv_val is not None else None
 
-        if daily and "time" in daily:
-            times = daily.get("time", [])
-            max_temps = daily.get("temperature_2m_max", [])
-            min_temps = daily.get("temperature_2m_min", [])
-            codes = daily.get("weather_code", [])
-            probs = daily.get("precipitation_probability_max", [])
-            sums = daily.get("precipitation_sum", [])
+            # Parse daily stats for today
+            temp_min_c = None
+            temp_max_c = None
+            precip_prob = None
+            daily_list: List[DailyForecast] = []
 
-            if max_temps and len(max_temps) > 0:
-                temp_max_c = float(max_temps[0])
-            if min_temps and len(min_temps) > 0:
-                temp_min_c = float(min_temps[0])
-            if probs and len(probs) > 0 and probs[0] is not None:
-                precip_prob = int(probs[0])
+            if daily and "time" in daily:
+                times = daily.get("time", [])
+                max_temps = daily.get("temperature_2m_max", [])
+                min_temps = daily.get("temperature_2m_min", [])
+                codes = daily.get("weather_code", [])
+                probs = daily.get("precipitation_probability_max", [])
+                sums = daily.get("precipitation_sum", [])
 
-            for i in range(len(times)):
-                d_code = codes[i] if i < len(codes) else 0
-                d_cond = get_wmo_condition(d_code, lang=lang)
-                daily_list.append(DailyForecast(
-                    date=times[i],
-                    temp_min_c=float(min_temps[i]) if i < len(min_temps) else 0.0,
-                    temp_max_c=float(max_temps[i]) if i < len(max_temps) else 0.0,
-                    condition_code=d_code,
-                    condition_text=d_cond["text"],
-                    icon=d_cond["icon"],
-                    precip_prob_pct=int(probs[i]) if i < len(probs) and probs[i] is not None else None,
-                    precip_mm=float(sums[i]) if i < len(sums) and sums[i] is not None else None,
-                ))
+                if max_temps and len(max_temps) > 0:
+                    temp_max_c = float(max_temps[0])
+                if min_temps and len(min_temps) > 0:
+                    temp_min_c = float(min_temps[0])
+                if probs and len(probs) > 0 and probs[0] is not None:
+                    precip_prob = int(probs[0])
 
-        return CityWeather(
-            query=location.query,
-            location=location,
-            temp_c=temp_c,
-            feels_like_c=feels_like_c,
-            humidity_pct=humidity_pct,
-            wind_speed_kmh=wind_speed_kmh,
-            wind_direction_deg=wind_deg,
-            wind_dir_compass=wind_dir,
-            condition=condition,
-            temp_min_c=temp_min_c,
-            temp_max_c=temp_max_c,
-            precip_mm=precip_mm,
-            precip_prob_pct=precip_prob,
-            uv_index=uv_index,
-            provider=self.name,
-            forecast=daily_list,
-            is_success=True,
-        )
+                for i in range(len(times)):
+                    d_code = codes[i] if i < len(codes) else 0
+                    d_cond = get_wmo_condition(d_code, lang=lang)
+                    daily_list.append(DailyForecast(
+                        date=times[i],
+                        temp_min_c=float(min_temps[i]) if i < len(min_temps) else 0.0,
+                        temp_max_c=float(max_temps[i]) if i < len(max_temps) else 0.0,
+                        condition_code=d_code,
+                        condition_text=d_cond["text"],
+                        icon=d_cond["icon"],
+                        precip_prob_pct=int(probs[i]) if i < len(probs) and probs[i] is not None else None,
+                        precip_mm=float(sums[i]) if i < len(sums) and sums[i] is not None else None,
+                    ))
+
+            return CityWeather(
+                query=location.query,
+                location=location,
+                temp_c=temp_c,
+                feels_like_c=feels_like_c,
+                humidity_pct=humidity_pct,
+                wind_speed_kmh=wind_speed_kmh,
+                wind_direction_deg=wind_deg,
+                wind_dir_compass=wind_dir,
+                condition=condition,
+                temp_min_c=temp_min_c,
+                temp_max_c=temp_max_c,
+                precip_mm=precip_mm,
+                precip_prob_pct=precip_prob,
+                uv_index=uv_index,
+                provider=self.name,
+                forecast=daily_list,
+                is_success=True,
+            )
+        except Exception:
+            return None

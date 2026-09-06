@@ -32,15 +32,32 @@ class TestGeoResolver(unittest.TestCase):
             self.assertAlmostEqual(loc.lat, lat, places=3)
             self.assertAlmostEqual(loc.lon, lon, places=3)
 
+    def test_damerau_levenshtein_distance(self):
+        from cli_weather.geo_resolver import damerau_levenshtein_distance
+        self.assertEqual(damerau_levenshtein_distance("tokyo", "tokyo"), 0)
+        self.assertEqual(damerau_levenshtein_distance("tokyoo", "tokyo"), 1)  # insertion
+        self.assertEqual(damerau_levenshtein_distance("toky", "tokyo"), 1)   # deletion
+        self.assertEqual(damerau_levenshtein_distance("tokya", "tokyo"), 1)  # substitution
+        self.assertEqual(damerau_levenshtein_distance("shnaghai", "shanghai"), 1)  # transposition
+        self.assertEqual(damerau_levenshtein_distance("fosahn", "foshan"), 1)      # transposition
+
     def test_typo_and_alias_tolerance(self):
         self.assertEqual(self.resolver.resolve("Chiangamai").canonical_name, "Chiang Mai")
         self.assertEqual(self.resolver.resolve("chiangmai").canonical_name, "Chiang Mai")
+        self.assertEqual(self.resolver.resolve("chiangmai1").canonical_name, "Chiang Mai")
         self.assertEqual(self.resolver.resolve("Danang").canonical_name, "Da Nang")
         self.assertEqual(self.resolver.resolve("da nang").canonical_name, "Da Nang")
         self.assertEqual(self.resolver.resolve("大理").canonical_name, "Dali")
+        self.assertEqual(self.resolver.resolve("dalli").canonical_name, "Dali")
         self.assertEqual(self.resolver.resolve("桂林").canonical_name, "Guilin")
         self.assertEqual(self.resolver.resolve("清迈").canonical_name, "Chiang Mai")
         self.assertEqual(self.resolver.resolve("岘港").canonical_name, "Da Nang")
+        self.assertEqual(self.resolver.resolve("Tokyoo").canonical_name, "Tokyo")
+        self.assertEqual(self.resolver.resolve("Shnaghai").canonical_name, "Shanghai")
+        self.assertEqual(self.resolver.resolve("Fosahn").canonical_name, "Foshan")
+        self.assertEqual(self.resolver.resolve("Beijng").canonical_name, "Beijing")
+        self.assertEqual(self.resolver.resolve("Los Angeles").canonical_name, "Los Angeles")
+        self.assertEqual(self.resolver.resolve("San Francisco").canonical_name, "San Francisco")
 
     def test_airport_iata_codes(self):
         self.assertEqual(self.resolver.resolve("cnx").canonical_name, "Chiang Mai")

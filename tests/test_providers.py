@@ -80,5 +80,34 @@ class TestProviders(unittest.TestCase):
             self.assertIn("残月", res.condition.text)
             self.assertEqual(res.condition.icon, "🌘")
 
+    def test_open_meteo_handles_errors_and_malformed_responses(self):
+        op = OpenMeteoProvider()
+        loc = ResolvedLocation("Tokyo", "Tokyo", "东京", "Tokyo", "JP", "JP", 35.68, 139.69)
+
+        # 1. Network / URL error
+        with patch("urllib.request.urlopen", side_effect=Exception("Connection refused")):
+            self.assertIsNone(op.fetch(loc))
+
+        # 2. Invalid JSON response
+        mock_resp_bad_json = MagicMock()
+        mock_resp_bad_json.__enter__.return_value = mock_resp_bad_json
+        mock_resp_bad_json.read.return_value = b"<html>502 Bad Gateway</html>"
+        with patch("urllib.request.urlopen", return_value=mock_resp_bad_json):
+            self.assertIsNone(op.fetch(loc))
+
+        # 3. Error response payload without current
+        mock_resp_err = MagicMock()
+        mock_resp_err.__enter__.return_value = mock_resp_err
+        mock_resp_err.read.return_value = b'{"error": true, "reason": "Rate limited"}'
+        with patch("urllib.request.urlopen", return_value=mock_resp_err):
+            self.assertIsNone(op.fetch(loc))
+
+        # 4. Incomplete current block missing temperature
+        mock_resp_no_temp = MagicMock()
+        mock_resp_no_temp.__enter__.return_value = mock_resp_no_temp
+        mock_resp_no_temp.read.return_value = b'{"current": {"weather_code": 0}}'
+        with patch("urllib.request.urlopen", return_value=mock_resp_no_temp):
+            self.assertIsNone(op.fetch(loc))
+
 if __name__ == "__main__":
     unittest.main()

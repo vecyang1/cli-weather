@@ -239,7 +239,11 @@ def parse_location_arguments(raw_locations: List[str], cities_arg: Optional[str]
                 matched = True
                 break
         if not matched:
-            has_any_known_ahead = any(is_known(expanded_tokens[j]) for j in range(i + 1, n))
+            has_any_known_ahead = any(
+                is_known(" ".join(expanded_tokens[j : j + k]))
+                for j in range(i + 1, n)
+                for k in range(1, min(5, n - j + 1))
+            )
             if not has_any_known_ahead:
                 parsed.append(" ".join(expanded_tokens[i:]))
                 break

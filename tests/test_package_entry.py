@@ -42,5 +42,10 @@ class TestPackageEntry(unittest.TestCase):
         self.assertEqual(res.returncode, 0)
         self.assertIn("cli-weather", res.stdout)
 
+    def test_base_provider_standalone_execution(self):
+        base_prov = SRC_DIR / "cli_weather" / "providers" / "base_provider.py"
+        res = subprocess.run([sys.executable, str(base_prov)], capture_output=True, text=True)
+        self.assertEqual(res.returncode, 0, f"base_provider.py failed standalone execution: {res.stderr}")
+
 if __name__ == "__main__":
     unittest.main()
