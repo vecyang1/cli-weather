@@ -8,7 +8,7 @@ This file is the project-local bridge card. It keeps roots findable without copy
 
 | Field | Value |
 |---|---|
-| Project ID | `a_coding-26-09-06-cli-weather` |
+| Project ID | `a_coding-26-09-06-cli-weather-362d8878` |
 | Project Name | CLI Weather (Standalone Production Engine & CLI) |
 | Canonical Hub | `/Users/vecsatfoxmailcom/Documents/A-coding/26.09.06-cli-weather` |
 | Code Root | `/Users/vecsatfoxmailcom/Documents/A-coding/26.09.06-cli-weather` |
