@@ -28,7 +28,7 @@ This file is the project-local bridge card. It keeps roots findable without copy
 Truth ownership is one-way. Navigation is two-way.
 
 - Hub root (`/Users/vecsatfoxmailcom/Documents/A-coding/26.09.06-cli-weather`) owns source code, tests, packaging, documentation, and technical execution.
-- Skill (`~/.gemini/antigravity/skills/cli-weather`) is a thin pointer / consumer of this engine.
+- Skill (`/Users/vecsatfoxmailcom/.gemini/antigravity/skills/cli-weather/SKILL.md`) is a thin pointer / consumer of this engine.
 - 2nd Brain owns stable memory, capabilities, and router context only.
 
 ## Safety
