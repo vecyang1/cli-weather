@@ -24,6 +24,7 @@ class TestGeoResolver(unittest.TestCase):
             ("Shanghai", "上海", 31.2304, 121.4737),
             ("Dali", "大理", 25.5847, 100.2123),
             ("Guilin", "桂林", 25.2736, 110.2902),
+            ("Yangshuo", "阳朔", 24.7808, 110.4897),
             ("Tokyo", "东京", 35.6895, 139.6917),
         ]
         for name, exp_zh, lat, lon in core_cases:

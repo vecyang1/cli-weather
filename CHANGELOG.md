@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.2] - 2026-09-18
+
+### Added
+- **Yangshuo (阳朔) Preseeded Resolution**: Added Yangshuo to preseeded canonical locations (`lat: 24.7808`, `lon: 110.4897`) and `DEFAULT_CADENCE_CITIES` with CJK alias variants for zero-latency deterministic weather queries.
+
+## [2026-09-12] - 2026-09-12
+
+### Maintenance
+- Strip private context files and sanitize paths per github-ops gates (`0c934fb`)
+
 ## [2.0.1] - 2026-09-07
 
 ### Fixed

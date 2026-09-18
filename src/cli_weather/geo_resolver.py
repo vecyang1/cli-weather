@@ -83,6 +83,16 @@ PRESEEDED_LOCATIONS: Dict[str, Dict[str, Any]] = {
         "lon": 110.2902,
         "timezone": "Asia/Shanghai",
     },
+    "yangshuo": {
+        "canonical": "Yangshuo",
+        "zh": "阳朔",
+        "en": "Yangshuo",
+        "country": "China",
+        "country_code": "CN",
+        "lat": 24.7808,
+        "lon": 110.4897,
+        "timezone": "Asia/Shanghai",
+    },
     "tokyo": {
         "canonical": "Tokyo",
         "zh": "东京",
@@ -272,6 +282,12 @@ ALIAS_MAP: Dict[str, str] = {
     "gui lin": "guilin",
     "桂林": "guilin",
     "kwl": "guilin",
+
+    # Variants for Yangshuo
+    "yangshuo": "yangshuo",
+    "yang shuo": "yangshuo",
+    "阳朔": "yangshuo",
+    "阳朔县": "yangshuo",
     "can": "guangzhou",
     "pek": "beijing",
     "pkx": "beijing",

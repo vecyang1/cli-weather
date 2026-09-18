@@ -35,7 +35,7 @@ except (ImportError, ValueError):
 
 __version__ = "2.0.0"
 
-DEFAULT_CADENCE_CITIES = ["Foshan", "Chiang Mai", "Da Nang", "Shanghai", "Dali", "Guilin", "Tokyo"]
+DEFAULT_CADENCE_CITIES = ["Foshan", "Chiang Mai", "Da Nang", "Shanghai", "Dali", "Guilin", "Yangshuo", "Tokyo"]
 
 
 def parse_args():
