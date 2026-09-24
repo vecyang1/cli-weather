@@ -16,14 +16,17 @@ from pathlib import Path
 
 try:
     from ..models import CityWeather, ResolvedLocation, WeatherCondition, DailyForecast
+    from ..http_client import safe_urlopen
     from .base_provider import BaseWeatherProvider
 except (ImportError, ValueError):
     try:
         from cli_weather.models import CityWeather, ResolvedLocation, WeatherCondition, DailyForecast
+        from cli_weather.http_client import safe_urlopen
         from cli_weather.providers.base_provider import BaseWeatherProvider
     except ImportError:
         sys.path.insert(0, str(Path(__file__).parent.parent))
         from models import CityWeather, ResolvedLocation, WeatherCondition, DailyForecast
+        from http_client import safe_urlopen
         from providers.base_provider import BaseWeatherProvider
 
 MOON_PHASE_MAP: Dict[str, Tuple[str, str]] = {
@@ -141,7 +144,7 @@ class WttrProvider(BaseWeatherProvider):
                 url,
                 headers={"User-Agent": "curl/7.81.0", "Accept-Language": lang}
             )
-            with urllib.request.urlopen(req, timeout=self.timeout_sec) as resp:
+            with safe_urlopen(req, timeout=self.timeout_sec) as resp:
                 data = json.loads(resp.read().decode("utf-8"))
 
             current_arr = data.get("current_condition", [])
@@ -228,7 +231,7 @@ class WttrProvider(BaseWeatherProvider):
             try:
                 url = f"https://wttr.in/{encoded_loc}?format=j1&m"
                 req = urllib.request.Request(url, headers={"User-Agent": "curl/7.81.0"})
-                with urllib.request.urlopen(req, timeout=self.timeout_sec) as resp:
+                with safe_urlopen(req, timeout=self.timeout_sec) as resp:
                     data = json.loads(resp.read().decode("utf-8"))
                 astronomy = data.get("weather", [{}])[0].get("astronomy", [{}])[0]
                 phase = astronomy.get("moon_phase", "Moon")

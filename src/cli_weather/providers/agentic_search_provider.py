@@ -14,16 +14,19 @@ from pathlib import Path
 
 try:
     from ..models import CityWeather, ResolvedLocation, WeatherCondition
+    from ..http_client import safe_urlopen
     from .base_provider import BaseWeatherProvider
     from .wttr_provider import translate_wttr_condition
 except (ImportError, ValueError):
     try:
         from cli_weather.models import CityWeather, ResolvedLocation, WeatherCondition
+        from cli_weather.http_client import safe_urlopen
         from cli_weather.providers.base_provider import BaseWeatherProvider
         from cli_weather.providers.wttr_provider import translate_wttr_condition
     except ImportError:
         sys.path.insert(0, str(Path(__file__).parent.parent))
         from models import CityWeather, ResolvedLocation, WeatherCondition
+        from http_client import safe_urlopen
         from providers.base_provider import BaseWeatherProvider
         from providers.wttr_provider import translate_wttr_condition
 
@@ -72,7 +75,7 @@ class AgenticSearchProvider(BaseWeatherProvider):
                 url,
                 headers={"User-Agent": "cli-weather-agentic/2.0"}
             )
-            with urllib.request.urlopen(req, timeout=self.timeout_sec) as resp:
+            with safe_urlopen(req, timeout=self.timeout_sec) as resp:
                 content = resp.read().decode("utf-8", errors="ignore")
 
             for line in content.splitlines():
@@ -117,7 +120,7 @@ class AgenticSearchProvider(BaseWeatherProvider):
                 url,
                 headers={"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"}
             )
-            with urllib.request.urlopen(req, timeout=self.timeout_sec) as resp:
+            with safe_urlopen(req, timeout=self.timeout_sec) as resp:
                 html_text = resp.read().decode("utf-8", errors="ignore")
 
             temp_c = self._extract_temperature(html_text)

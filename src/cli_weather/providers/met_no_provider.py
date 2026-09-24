@@ -13,16 +13,19 @@ from pathlib import Path
 
 try:
     from ..models import CityWeather, ResolvedLocation, WeatherCondition
+    from ..http_client import safe_urlopen
     from .base_provider import BaseWeatherProvider
     from .open_meteo_provider import deg_to_compass
 except (ImportError, ValueError):
     try:
         from cli_weather.models import CityWeather, ResolvedLocation, WeatherCondition
+        from cli_weather.http_client import safe_urlopen
         from cli_weather.providers.base_provider import BaseWeatherProvider
         from cli_weather.providers.open_meteo_provider import deg_to_compass
     except ImportError:
         sys.path.insert(0, str(Path(__file__).parent.parent))
         from models import CityWeather, ResolvedLocation, WeatherCondition
+        from http_client import safe_urlopen
         from providers.base_provider import BaseWeatherProvider
         from providers.open_meteo_provider import deg_to_compass
 
@@ -86,7 +89,7 @@ class MetNoProvider(BaseWeatherProvider):
         )
 
         try:
-            with urllib.request.urlopen(req, timeout=self.timeout_sec) as resp:
+            with safe_urlopen(req, timeout=self.timeout_sec) as resp:
                 data = json.loads(resp.read().decode("utf-8"))
 
             timeseries = data.get("properties", {}).get("timeseries", [])

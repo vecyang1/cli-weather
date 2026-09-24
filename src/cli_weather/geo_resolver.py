@@ -12,11 +12,13 @@ import urllib.parse
 from typing import Optional, Dict, Any
 try:
     from .models import ResolvedLocation
+    from .http_client import safe_urlopen
 except ImportError:
     import sys
     from pathlib import Path
     sys.path.insert(0, str(Path(__file__).parent))
     from models import ResolvedLocation
+    from http_client import safe_urlopen
 
 
 # Pre-seeded canonical locations for zero-latency, deterministic resolution.
@@ -520,7 +522,7 @@ class GeoResolver:
             encoded = urllib.parse.quote(query.strip())
             url = f"https://geocoding-api.open-meteo.com/v1/search?name={encoded}&count=5&language=en&format=json"
             req = urllib.request.Request(url, headers={"User-Agent": "cli-weather/2.0"})
-            with urllib.request.urlopen(req, timeout=self.timeout_sec) as resp:
+            with safe_urlopen(req, timeout=self.timeout_sec) as resp:
                 data = json.loads(resp.read().decode("utf-8"))
 
             results = data.get("results")
@@ -577,7 +579,7 @@ class GeoResolver:
             encoded = urllib.parse.quote(name)
             url = f"https://en.wikipedia.org/w/api.php?action=query&prop=coordinates&titles={encoded}&format=json&redirects=1"
             req = urllib.request.Request(url, headers={"User-Agent": "cli-weather/2.0"})
-            with urllib.request.urlopen(req, timeout=self.timeout_sec) as resp:
+            with safe_urlopen(req, timeout=self.timeout_sec) as resp:
                 data = json.loads(resp.read().decode("utf-8"))
             pages = data.get("query", {}).get("pages", {})
             for pid, pdata in pages.items():
@@ -592,7 +594,7 @@ class GeoResolver:
             encoded = urllib.parse.quote(name)
             url = f"https://nominatim.openstreetmap.org/search?q={encoded}&format=json&limit=1"
             req = urllib.request.Request(url, headers={"User-Agent": "cli-weather/2.0"})
-            with urllib.request.urlopen(req, timeout=self.timeout_sec) as resp:
+            with safe_urlopen(req, timeout=self.timeout_sec) as resp:
                 data = json.loads(resp.read().decode("utf-8"))
             if data and len(data) > 0:
                 first = data[0]

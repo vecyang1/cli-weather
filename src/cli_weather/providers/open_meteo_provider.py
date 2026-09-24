@@ -13,14 +13,17 @@ from pathlib import Path
 
 try:
     from ..models import CityWeather, ResolvedLocation, WeatherCondition, DailyForecast, get_wmo_condition
+    from ..http_client import safe_urlopen
     from .base_provider import BaseWeatherProvider
 except (ImportError, ValueError):
     try:
         from cli_weather.models import CityWeather, ResolvedLocation, WeatherCondition, DailyForecast, get_wmo_condition
+        from cli_weather.http_client import safe_urlopen
         from cli_weather.providers.base_provider import BaseWeatherProvider
     except ImportError:
         sys.path.insert(0, str(Path(__file__).parent.parent))
         from models import CityWeather, ResolvedLocation, WeatherCondition, DailyForecast, get_wmo_condition
+        from http_client import safe_urlopen
         from providers.base_provider import BaseWeatherProvider
 
 COMPASS_POINTS = [
@@ -76,7 +79,7 @@ class OpenMeteoProvider(BaseWeatherProvider):
 
         try:
             req = urllib.request.Request(url, headers={"User-Agent": "cli-weather/2.0"})
-            with urllib.request.urlopen(req, timeout=self.timeout_sec) as resp:
+            with safe_urlopen(req, timeout=self.timeout_sec) as resp:
                 data = json.loads(resp.read().decode("utf-8"))
 
             if not isinstance(data, dict) or data.get("error") or not data.get("current"):
