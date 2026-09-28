@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.4] - 2026-09-28
+
+### Fixed
+- **Preflight Proxy Probing & Active System Proxy Prioritization**: Added socket-level preflight probing (`is_local_proxy_alive`) in `http_client.py` for local system proxies (e.g. `127.0.0.1:1082` on macOS). When an active local proxy is listening, routes requests through the proxy immediately instead of hanging for 4s on direct GFW-dropped connections. If the local proxy daemon is dead/closed, immediately bypasses it to direct connection in 0.0001s.
+- **Concurrent Request Jitter & Retry Resilience**: Added single-retry with 0.3s backoff in `WeatherEngine._try_*` providers to absorb transient socket contention during multi-city concurrent bursts.
+- **Timeout Buffer**: Increased default provider timeout to 6.0s (was 4.0s) to comfortably accommodate multi-thread SSL handshakes through local proxy daemons without false fallbacks.
+
 ## [2.0.3] - 2026-09-24
 
 ### Fixed

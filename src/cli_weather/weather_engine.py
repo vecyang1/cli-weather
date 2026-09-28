@@ -10,6 +10,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List, Optional
 from pathlib import Path
 import sys
+import time
 
 try:
     from .models import CityWeather, ResolvedLocation
@@ -50,7 +51,7 @@ class WeatherEngine:
         geo_resolver: Optional[GeoResolver] = None,
         cache_manager: Optional[CacheManager] = None,
         config: Optional[WeatherConfig] = None,
-        timeout_sec: float = 4.0,
+        timeout_sec: float = 6.0,
     ):
         self.config = config or WeatherConfig()
         self.geo_resolver = geo_resolver or GeoResolver(timeout_sec=timeout_sec)
@@ -185,22 +186,40 @@ class WeatherEngine:
         return results
 
     def _try_open_meteo(self, location: ResolvedLocation, lang: str) -> Optional[CityWeather]:
-        try:
-            return self.open_meteo.fetch(location, lang=lang)
-        except Exception:
-            return None
+        for attempt in range(2):
+            try:
+                res = self.open_meteo.fetch(location, lang=lang)
+                if res and res.is_success:
+                    return res
+            except Exception:
+                pass
+            if attempt == 0:
+                time.sleep(0.3)
+        return None
 
     def _try_met_no(self, location: ResolvedLocation, lang: str) -> Optional[CityWeather]:
-        try:
-            return self.met_no.fetch(location, lang=lang)
-        except Exception:
-            return None
+        for attempt in range(2):
+            try:
+                res = self.met_no.fetch(location, lang=lang)
+                if res and res.is_success:
+                    return res
+            except Exception:
+                pass
+            if attempt == 0:
+                time.sleep(0.3)
+        return None
 
     def _try_wttr(self, location: ResolvedLocation, lang: str) -> Optional[CityWeather]:
-        try:
-            return self.wttr.fetch(location, lang=lang)
-        except Exception:
-            return None
+        for attempt in range(2):
+            try:
+                res = self.wttr.fetch(location, lang=lang)
+                if res and res.is_success:
+                    return res
+            except Exception:
+                pass
+            if attempt == 0:
+                time.sleep(0.3)
+        return None
 
     def _try_agentic_search(self, location: ResolvedLocation, lang: str) -> Optional[CityWeather]:
         try:

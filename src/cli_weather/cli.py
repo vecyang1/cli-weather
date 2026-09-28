@@ -33,7 +33,7 @@ except (ImportError, ValueError):
         from cache_manager import CacheManager
         from formatters import format_table, format_json, format_oneline, format_brief_natural
 
-__version__ = "2.0.0"
+__version__ = "2.0.4"
 
 DEFAULT_CADENCE_CITIES = ["Foshan", "Chiang Mai", "Da Nang", "Shanghai", "Dali", "Guilin", "Yangshuo", "Tokyo"]
 
